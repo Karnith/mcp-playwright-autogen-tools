@@ -13,7 +13,9 @@ A Model Context Protocol server that provides browser automation capabilities us
 
 ## Installation
 
-You can install the package using either npm, mcp-get, or Smithery:
+You can install and run the server in multiple ways:
+
+### NPM Installation
 
 Using npm:
 ```bash
@@ -24,14 +26,88 @@ Using mcp-get:
 ```bash
 npx @michaellatman/mcp-get@latest install @executeautomation/playwright-mcp-server
 ```
-Using Smithery
 
-To install Playwright MCP for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@executeautomation/playwright-mcp-server):
-
+Using Smithery:
 ```bash
 npx -y @smithery/cli install @executeautomation/playwright-mcp-server --client claude
 ```
-## Configuration to use Playwright Server
+
+### Docker Installation
+
+The server can also be run using Docker Compose, which provides an isolated environment with all necessary dependencies.
+
+1. Clone the repository:
+```bash
+git clone https://github.com/executeautomation/mcp-playwright.git
+cd mcp-playwright
+```
+
+2. Configure environment variables (optional):
+```bash
+# Copy the example .env file
+cp .env.example .env
+
+# Edit the .env file to customize settings
+# Default port is 3338
+```
+
+3. Build and start the container:
+```bash
+docker-compose up -d
+```
+
+4. View logs:
+```bash
+docker-compose logs -f
+```
+
+5. Stop the container:
+```bash
+docker-compose down
+```
+
+The server will be accessible at `http://localhost:3338/sse` (or your configured port) when running in Docker.
+
+## Configuration
+
+### Multi-Session Support
+
+The server now supports multiple concurrent connections with isolated browser sessions:
+
+- Each client connection gets its own dedicated browser instance
+- Browser state and tool state are isolated between connections
+- Sessions are automatically cleaned up after 30 minutes of inactivity
+- Maximum concurrent sessions can be configured (default: 10)
+
+You can configure the session behavior through environment variables:
+
+```bash
+# Maximum number of concurrent sessions
+MAX_SESSIONS=10
+
+# Session timeout in milliseconds (default: 30 minutes)
+SESSION_TIMEOUT=1800000
+```
+
+When running with Docker, add these variables to your `.env` file or docker-compose.yml:
+
+```yaml
+environment:
+  - MAX_SESSIONS=10
+  - SESSION_TIMEOUT=1800000
+```
+
+### Connection Limitations
+
+While the server now supports multiple concurrent sessions, please note:
+
+- Each session consumes significant system resources (memory and CPU)
+- Browser instances are launched on-demand and cleaned up automatically
+- Consider your server's resource capacity when setting MAX_SESSIONS
+- For high-load scenarios, consider running multiple server instances behind a load balancer
+
+### Claude Desktop Configuration
+
 Here's the Claude Desktop configuration to use the Playwright server:
 
 ```json
@@ -44,6 +120,14 @@ Here's the Claude Desktop configuration to use the Playwright server:
   }
 }
 ```
+
+### Docker Environment Variables
+
+When running with Docker, you can configure the following environment variables in the `.env` file:
+
+- `PORT`: The port number for the SSE server (default: 3338)
+- `NODE_ENV`: The Node.js environment (default: production)
+- `PLAYWRIGHT_BROWSERS_PATH`: Path to Playwright browsers in the container (default: /ms-playwright)
 
 ## Testing
 

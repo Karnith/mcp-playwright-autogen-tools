@@ -18,11 +18,21 @@ COPY tsconfig.json ./
 # Build the project
 RUN npm run build
 
-# Use a minimal Node.js image for running the project
-FROM node:20-alpine AS release
+# Use a Node.js image with necessary dependencies for running Playwright
+FROM mcr.microsoft.com/playwright:v1.51.1-jammy AS release
+
+# Install Node.js
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
+
+# Create data directory for persistent storage
+RUN mkdir -p /app/data && chmod 777 /app/data
 
 # Copy the built files from the builder stage
 COPY --from=builder /app/dist ./dist

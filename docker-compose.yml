@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mcp-playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3338}:3338"
+    environment:
+      - PORT=3338
+      - NODE_ENV=${NODE_ENV:-production}
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      - MAX_SESSIONS=${MAX_SESSIONS:-10}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-1800000}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3338/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  playwright-data:  # Persistent volume for storing data 
